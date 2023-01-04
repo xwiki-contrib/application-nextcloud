@@ -1,0 +1,237 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+<xwikidoc version="1.5" reference="Nextcloud.Admin.WebHome" locale="">
+  <web>Nextcloud.Admin</web>
+  <name>WebHome</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Main.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Admin</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{velocity}}&#13;
+= $services.localization.render('nextcloud.admininstancetitle')&#13;
+&#13;
+#if ("$!request.new_instance_url" != "")&#13;
+  #set($discard = $services.nextcloud.generateClientId($request.new_instance_url, $request.new_instance_redirect_url))&#13;
+#end&#13;
+#if ("$!request.delete_instance" != "")&#13;
+  #set($discard = $services.nextcloud.removeClientId($request.delete_instance))&#13;
+#end&#13;
+&#13;
+{{html wiki=false}}&#13;
+#set($configDoc = $xwiki.getDocument("Nextcloud.Configuration"))&#13;
+#set($objs = $configDoc.getObjects("Nextcloud.InstanceClass"))&#13;
+#if ($objs.size() &gt; 0)&#13;
+  &lt;table id="nextcloudclientidtable"&gt;&#13;
+    &lt;tr&gt;&#13;
+      &lt;th&gt;Instance&lt;/th&gt;&#13;
+      &lt;th&gt;Redirect URI&lt;/th&gt;&#13;
+      &lt;th&gt;Client ID&lt;/th&gt;&#13;
+      &lt;th&gt;Actions&lt;/th&gt;&#13;
+    &lt;/tr&gt;&#13;
+    #foreach($obj in $objs)&#13;
+      #set($url = $escapetool.xml($obj.get("url")))&#13;
+      #set($redirectUri = $escapetool.xml($obj.get("redirectUri")))&#13;
+      #set($clientId = $escapetool.xml($obj.get("clientId")))&#13;
+      #set($form = "&lt;form method='post' action=''&gt;&lt;button name='delete_instance' value='$clientId' aria-label='delete'&gt;&lt;span class='fa fa-times-circle'&gt;&lt;/span&gt;&lt;/button&gt;&lt;/form&gt;")&#13;
+      &lt;tr&gt;&#13;
+        &lt;td&gt;$url (&lt;a href="$url/settings/admin/xwiki"&gt;$services.localization.render('nextcloud.admin') &lt;span class="icon fa fa-external-link"&gt;&lt;/span&gt;&lt;/a&gt;)&lt;/td&gt;&#13;
+        &lt;td&gt;$redirectUri&lt;/td&gt;&#13;
+        &lt;td&gt;$clientId&lt;/td&gt;&#13;
+        &lt;td&gt;$form&lt;/td&gt;&#13;
+      &lt;/tr&gt;&#13;
+    #end&#13;
+  &lt;/table&gt;&#13;
+  &lt;div class="box infomessage"&gt;&#13;
+    &lt;p&gt;$services.localization.render('nextcloud.inforegistration') &lt;/p&gt;&#13;
+  &lt;/div&gt;&#13;
+#else&#13;
+  &lt;p&gt;$services.localization.render('nextcloud.noneyet')&lt;/p&gt;&#13;
+#end&#13;
+{{/html}}&#13;
+&#13;
+= $services.localization.render('nextcloud.registerinstancetitle')&#13;
+&#13;
+{{html wiki=false}}&#13;
+  &lt;form method="post" action=""&gt;&#13;
+    &lt;p&gt;&lt;label for="new_instance_url"&gt;$services.localization.render('nextcloud.url')&lt;/label&gt;&lt;/p&gt;&#13;
+    &lt;p&gt;&lt;input&#13;
+      id="new_instance_url"&#13;
+      name="new_instance_url"&#13;
+      type="text"&#13;
+      placeholder="https://nextcloud.example.org/"&#13;
+      #if("$!request.redirect_uri" != "")&#13;
+      #set($redirectURI = $urltool.toURL($request.redirect_uri))&#13;
+      #set($instanceURL = "$redirectURI.getProtocol()://$redirectURI.getHost()")&#13;
+      value="$escapetool.xml($instanceURL)"&#13;
+      #end&#13;
+    /&gt;&lt;/p&gt;&#13;
+    &lt;p&gt;&lt;label for="new_instance_redirect_url"&gt;$services.localization.render('nextcloud.redirecturl')&lt;/label&gt;&lt;/p&gt;&#13;
+    &lt;p&gt;&lt;input&#13;
+      id="new_instance_redirect_url"&#13;
+      name="new_instance_redirect_url"&#13;
+      type="text"&#13;
+      placeholder="https://nextcloud.example.org/apps/xwiki/settings/oidcRedirect"&#13;
+      value="$!escapetool.xml($request.redirect_uri)"&#13;
+    /&gt;&lt;/p&gt;&#13;
+    &lt;button&gt;$services.localization.render('nextcloud.register')&lt;/button&gt;&#13;
+  &lt;/form&gt;&#13;
+{{/html}}&#13;
+&#13;
+{{/velocity}}</content>
+  <object>
+    <name>Nextcloud.Admin.WebHome</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>9e3a2b40-9fa1-4e0d-8aa7-dc7540d12c3c</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>#nextcloudclientidtable td {
+  word-break: break-all;
+}
+
+form p input:only-child {
+  display: border-box;
+  width: 100%
+}</code>
+    </property>
+    <property>
+      <contentType/>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse/>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+</xwikidoc>

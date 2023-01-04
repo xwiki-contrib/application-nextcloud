@@ -1,0 +1,120 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="Nextcloud.Tokens.WebHome" locale="">
+  <web>Nextcloud.Tokens</web>
+  <name>WebHome</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Nextcloud.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Tokens</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{velocity}}
+{{html wiki=false}}
+#if ($isGuest)
+  &lt;p&gt;$services.localization.render('nextcloud.mustbelogged')&lt;/p&gt;
+#else
+  #set($configDoc = $xwiki.getDocument("Nextcloud.Configuration"))
+  #set($userDoc = $xwiki.getDocument($xcontext.getUserReference()))
+
+  #set($redirectURI = $urltool.toURL($request.redirect_uri))
+  #set($instanceURL = "$redirectURI.getProtocol()://$redirectURI.getHost()")
+
+  #if($services.nextcloud.isClientIDRegistered($request.client_id, $request.redirect_uri))
+    #set($clientID = $request.client_id)
+  #else
+    #set($clientID = "")
+  #end
+
+  #if("$!request.response_type" == "code")
+    ## A RP is requesting a token
+    #if ($clientID == "")
+      ## This RP does not have a registered client id
+      &lt;div class="box"&gt;
+        &lt;p&gt;
+          $services.localization.render('nextcloud.requestingaccessfromnextcloud').replace("{URL}", "&lt;a href='$escapetool.xml($instanceURL)'&gt;$escapetool.xml($!$redirectURI.getHost())&lt;/a&gt;")
+        &lt;/p&gt;
+        #if ($!request.redirect_uri != "")
+          &lt;p class="text-right"&gt;
+            &lt;a
+              class="btn btn-secondary"
+              href="$escapetool.xml($request.redirect_uri)?error=unauthorized_client&amp;amp;error_description=$escapetool.url($services.localization.render('nextcloud.unknownclientid'))&amp;amp;state=$escapetool.xml($escapetool.url($request.state))"
+            &gt;
+              $services.localization.render('nextcloud.gobacktonextcloud')
+            &lt;/a&gt;
+          &lt;/p&gt;
+        #end
+      &lt;/div&gt;
+    #elseif("$!request.confirm" != "true")
+      &lt;div class="box"&gt;
+        &lt;form method="post" action="$escapetool.xml($xwiki.getDocument('Nextcloud.Tokens.Create').getURL())"&gt;
+          &lt;p&gt;
+            $services.localization.render('nextcloud.questioninstanceaccesspermission').replace("{URL}", "&lt;strong&gt;$escapetool.xml($redirectURI.getHost())&lt;/strong&gt;")
+          &lt;/p&gt;
+          &lt;p class="text-right"&gt;
+            &lt;a href="$escapetool.xml($request.redirect_uri)?error=access_denied&amp;amp;error_description=$escapetool.url("$services.localization.render('nextcloud.userrejected')")&amp;amp;state=$escapetool.xml($escapetool.url($request.state))" class="btn btn-secondary"&gt;$services.localization.render('nextcloud.no')&lt;/a&gt;
+            &lt;input type="hidden" name="client_id" value="$escapetool.xml($request.client_id)" /&gt;
+            &lt;input type="hidden" name="redirect_uri" value="$escapetool.xml($request.redirect_uri)" /&gt;
+            &lt;input type="hidden" name="state" value="$escapetool.xml($request.state)" /&gt;
+            &lt;button class="btn btn-primary"&gt;$services.localization.render('nextcloud.yes')&lt;/button&gt;
+          &lt;/p&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    #else
+      #set($token = $services.nextcloud.createNewToken($clientID, $redirectURI))
+      #if("$!token" == "")
+        &lt;div class="box"&gt;
+          &lt;p&gt;
+            $services.localization.render('nextcloud.generatetokenfailed').replace("{URL}", "&amp;lt;strong&amp;gt;$escapetool.xml($request.generate_token)&amp;lt;/strong&amp;gt;")
+          &lt;/p&gt;
+        &lt;/div&gt;
+      #else
+        &lt;div class="box"&gt;
+          #if("$!request.request_token" != "")
+          &lt;form method="post" action="$escapetool.xml($request.request_token)"&gt;
+          #end
+          &lt;p&gt;A token has been generated for &lt;strong&gt;$escapetool.xml($request.generate_token)&lt;/strong&gt;.&lt;/p&gt;
+          #if("$!request.request_token" != "")
+          &lt;p&gt;&lt;button name="token" value="$token" class="btn btn-primary"&gt;Continue&lt;/button&gt;&lt;/p&gt;
+          &lt;/form&gt;
+          #else
+          &lt;a href=""&gt;$services.localization.render('nextcloud.goback')&lt;/a&gt;
+          #end
+        &lt;/div&gt;
+      #end
+    #end
+  #else
+    &lt;p&gt;$services.localization.render('nextcloud.infotoken')&lt;/p&gt;
+    &lt;p&gt;$services.localization.render('nextcloud.notetoken')&lt;/p&gt;
+  #end
+#end
+{{/velocity}}</content>
+</xwikidoc>

@@ -1,0 +1,66 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="Nextcloud.Translations" locale="fr">
+  <web>Nextcloud</web>
+  <name>Translations</name>
+  <language>fr</language>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>1</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Nextcloud</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>plain/1.0</syntaxId>
+  <hidden>false</hidden>
+  <content>nextcloud.welcome=Bienvenue dans l’espace de l’intégration Nextcloud pour XWiki. Cette intégration vous permet d’enregistrer des instances Nextcloud auprès d’XWiki. Allez dans la section XWiki de la page d’administration de votre instance Nextcloud et suivez les instructions.
+nextcloud.mustbelogged=You devez être connecté·e pour utiliser cette page.
+nextcloud.questioninstanceaccesspermission=L’instance Nextcloud à l’adresse {URL} demande votre permission pour accéder à XWiki de votre part. Êtes-vous d’accord ?
+nextcloud.no=Non
+nextcloud.yes=Oui
+nextcloud.url=URL :
+nextcloud.goback=Revenir en arrière
+nextcloud.continue=Continuer
+nextcloud.register=Enregistrer
+nextcloud.admin=Admin
+nextcloud.generatetokenfailed=Désolé, nous n’avons pas pu générer un jeton pour {URL}.
+nextcloud.generatetokensucceeded=Un jeton a été généré pour {URL}.
+nextcloud.infotoken=Vous pouvez créer des jetons pour autoriser des instances Nextcloud à accéder à votre profile et vos données. Cela permettra à Nextcloud d’afficher des résultats et du contenu pertinent pour vous. Vous aurez besoin de fournir ces jetons à Nextcloud dans l’application XWiki pour Nextcloud.
+nextcloud.notetoken=Note : pour pouvoir créer un jeton pour une instance Nextcloud, vous devez lui créer un client id. Dirigez-vous vers la section d’administration XWiki de cette instance Nextcloud.
+nextcloud.admininstancetitle=Instances enregistrées
+nextcloud.inforegistration=Pour terminer l’enregistrement d’une instance Nextcloud, collez son identifiant client (Client ID) dans sa section d’aministration XWiki. Pour votre confort, un lien vers cette section est fourni dans le tableau pour chaque instance. Les utilisateurs et les utilisatrices auront alors besoin de générer un jeton pour chaque instance pour se connecter à XWiki depuis Nextcloud, ce qui peut se faire dans la section XWiki de leurs paramètres personnels sur Nextcloud.
+nextcloud.noneyet=Aucune pour le moment.
+nextcloud.registerinstancetitle=Enregistrer une instance
+nextcloud.redirecturl=URL de redirection :
+nextcloud.infotokencreate=Cette page est utilisée pour créer un jeton depuis une instance Nextcloud. Merci de bien vouloir aller dans la section d’administration XWiki sur l’instance Nextcloud que vous souhaitez enregistrer et de suivre les instructions.
+nextcloud.gobacktonextcloud=Revenir sur Nextcloud
+nextcloud.removedcodemodifmsg=Suppression du code pour {URL}
+nextcloud.requestingaccessfromnextcloud=Vous demandez un accès pour une instance Nextcloud ({URL}) qui n’est pas enregistrée auprès de ce wiki. Merci de demander à la personne qui administre ce wiki de l’enregistrer.
+nextcloud.unknownclientid=Le client_id est inconnu ou le redirect_uri ne correspond pas
+nextcloud.userrejected=L’utilisateur a rejeté la connexion
+nextcloud.completetoken=L’accès sera autorisé en cliquant sur le bouton suivant.</content>
+</xwikidoc>

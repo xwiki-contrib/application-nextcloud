@@ -1,0 +1,102 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="Nextcloud.Translations" locale="">
+  <web>Nextcloud</web>
+  <name>Translations</name>
+  <language/>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Nextcloud</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>plain/1.0</syntaxId>
+  <hidden>true</hidden>
+  <content>nextcloud.welcome=Welcome to the XWiki Nextcloud integration space. This integration allows you to register Nextcloud instances to XWiki. Go to the XWiki Administration section of your Nextcloud instance and follow the instructions.
+nextcloud.mustbelogged=You must be logged in to use this page
+nextcloud.questioninstanceaccesspermission=The Nextcloud instance at {URL} is requesting your permission to access XWiki on your behalf. Do you agree?
+nextcloud.no=No
+nextcloud.yes=Yes
+nextcloud.url=URL:
+nextcloud.goback=Go back
+nextcloud.continue=Continue
+nextcloud.register=Register
+nextcloud.admin=Admin
+nextcloud.generatetokenfailed=Sorry, we could not generate a token for {URL}.
+nextcloud.generatetokensucceeded=A token has been generated for {URL}.
+nextcloud.infotoken=You can create tokens to allow Nextcloud instances to access your XWiki profile and data. It will let Nextcloud show you search results and content relevant to you. You will need to provide these tokens to Nextcloud in the XWiki Nextcloud app.
+nextcloud.notetoken=Note: to be able to create token for a Nextcloud instance, you need to create a client id for it. Head over to the XWiki administration section of this Nextcloud instance.
+nextcloud.admininstancetitle=Registered instances
+nextcloud.inforegistration=To complete the registration of a Nextcloud instance, paste its client ID in its XWiki administration section. For your convenience, a link is provided in the table for each instance. Users will then need to generate a token to log in to XWiki from Nextcloud. They can do it in their XWiki personnal settings section in Nextcloud.
+nextcloud.noneyet=None yet.
+nextcloud.registerinstancetitle=Register an instance
+nextcloud.redirecturl=Redirect URL:
+nextcloud.infotokencreate=This page is used to create a token from a Nextcloud instance. Please go to the XWiki administration section of the Nextcloud instance you want to register and follow the instructions from there.
+nextcloud.gobacktonextcloud=Go back to Nextcloud
+nextcloud.removedcodemodifmsg=Removed code for {URL}
+nextcloud.requestingaccessfromnextcloud=You are requesting access for a Nextcloud instance ({URL}) that is not registered on this wiki. Please ask the administrator to register it.
+nextcloud.unknownclientid=The client_id is unknown or the redirect_uri does not match
+nextcloud.userrejected=The user rejected the connection</content>
+  <object>
+    <name>Nextcloud.Translations</name>
+    <number>0</number>
+    <className>XWiki.TranslationDocumentClass</className>
+    <guid>5ed64f59-6852-4728-9308-2b02acce8ab5</guid>
+    <class>
+      <name>XWiki.TranslationDocumentClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>1</number>
+        <prettyName>Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>GLOBAL|WIKI|USER|ON_DEMAND</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <property>
+      <scope>WIKI</scope>
+    </property>
+  </object>
+</xwikidoc>

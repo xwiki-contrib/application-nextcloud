@@ -1,0 +1,71 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+<xwikidoc version="1.5" reference="Nextcloud.Tokens.Create" locale="">
+  <web>Nextcloud.Tokens</web>
+  <name>Create</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Create</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{velocity}}
+  #if($request.method == "POST")
+    #if("$!request.code" != "" &amp;&amp; "$!request.grant_type" == "authorization_code")
+      #set($valuesForCode = $services.nextcloud.useCode($request.code, $request.redirect_uri))
+      #if ("$!valuesForCode" == "")
+        #jsonResponse({"error": "access_denied"})
+      #else
+        #set($clientId = $valuesForCode[0])
+        #set($userReference = $valuesForCode[1])
+        #set($discard = $xwiki.getDocument("Nextcloud.Configuration").save($services.localization.render('nextcloud.removedcodemodifmsg').replace("{URL}", $request.redirect_uri)))
+        #jsonResponse({
+          "access_token": $services.nextcloud.createNewToken($clientId, $userReference, $request.redirect_uri),
+          "token_type": "Bearer"
+        })
+        ## TODO: Would need id_token and expire_in to be compliant)
+      #end
+    #else
+      #set($code = $services.nextcloud.generateGrantCode($request.client_id, $request.redirect_uri))
+      #set($url = "${request.redirect_uri}?state=${request.state}&amp;code=${code}")
+      ## The following redirect is blocked by XWiki:
+      ## $response.sendRedirect($url)
+      ## with the following message:
+      ## WARN  c.x.x.w.XWikiServletResponse   - Possible phishing attack, attempting to redirect to [https://nextcloud.example.org/apps/xwiki/settings/oidcRedirect?state=1332daced5503ed52f992c2c52f70dcac76cbe6f&amp;code=], this request has been blocked. If the request was legitimate, add the domain related to this request in the list of trusted domains in the configuration: it can be configured in xwiki.properties in url.trustedDomains.
+      {{html wiki=false}}
+        &lt;p&gt;$services.localization.render('nextcloud.completetoken')&lt;/p&gt;
+        &lt;a href="$escapetool.xml($url)" class="btn btn-primary"&gt;$services.localization.render('nextcloud.gobacktonextcloud')&lt;/a&gt;
+      {{/html}}
+    #end
+  #else
+    $services.localization.render('nextcloud.infotokencreate')
+  #end
+{{/velocity}}</content>
+</xwikidoc>
