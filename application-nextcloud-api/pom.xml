@@ -22,10 +22,10 @@
   <parent>
     <groupId>org.xwiki.contrib.nextcloud</groupId>
     <artifactId>application-nextcloud</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
   </parent>
   <artifactId>application-nextcloud-api</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <name>Application Nextcloud - API</name>
   <packaging>jar</packaging>
   <description>API support for the Nextcloud Application.</description>
