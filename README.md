@@ -32,6 +32,6 @@ present. This is used for authenticating users from Nextcloud.
 ## XWiki Application for Nextcloud
 
 This XWiki extension is useful with the
-[XWiki Nextcloud application](https://github.com/raphj/xwiki-nextcloud-app),
+[XWiki Nextcloud application](https://github.com/nextcloud/xwiki),
 which needs to be installed on the Nextcloud instances you wish to integrate
 your wikis with.
