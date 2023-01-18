@@ -19,6 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
+
 <xwikidoc version="1.5" reference="Nextcloud.Admin.WebHome" locale="">
   <web>Nextcloud.Admin</web>
   <name>WebHome</name>
@@ -36,77 +37,229 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{velocity}}&#13;
-= $services.localization.render('nextcloud.admininstancetitle')&#13;
-&#13;
-#if ("$!request.new_instance_url" != "")&#13;
-  #set($discard = $services.nextcloud.generateClientId($request.new_instance_url, $request.new_instance_redirect_url))&#13;
-#end&#13;
-#if ("$!request.delete_instance" != "")&#13;
-  #set($discard = $services.nextcloud.removeClientId($request.delete_instance))&#13;
-#end&#13;
-&#13;
-{{html wiki=false}}&#13;
-#set($configDoc = $xwiki.getDocument("Nextcloud.Configuration"))&#13;
-#set($objs = $configDoc.getObjects("Nextcloud.InstanceClass"))&#13;
-#if ($objs.size() &gt; 0)&#13;
-  &lt;table id="nextcloudclientidtable"&gt;&#13;
-    &lt;tr&gt;&#13;
-      &lt;th&gt;Instance&lt;/th&gt;&#13;
-      &lt;th&gt;Redirect URI&lt;/th&gt;&#13;
-      &lt;th&gt;Client ID&lt;/th&gt;&#13;
-      &lt;th&gt;Actions&lt;/th&gt;&#13;
-    &lt;/tr&gt;&#13;
-    #foreach($obj in $objs)&#13;
-      #set($url = $escapetool.xml($obj.get("url")))&#13;
-      #set($redirectUri = $escapetool.xml($obj.get("redirectUri")))&#13;
-      #set($clientId = $escapetool.xml($obj.get("clientId")))&#13;
-      #set($form = "&lt;form method='post' action=''&gt;&lt;button name='delete_instance' value='$clientId' aria-label='delete'&gt;&lt;span class='fa fa-times-circle'&gt;&lt;/span&gt;&lt;/button&gt;&lt;/form&gt;")&#13;
-      &lt;tr&gt;&#13;
-        &lt;td&gt;$url (&lt;a href="$url/settings/admin/xwiki"&gt;$services.localization.render('nextcloud.admin') &lt;span class="icon fa fa-external-link"&gt;&lt;/span&gt;&lt;/a&gt;)&lt;/td&gt;&#13;
-        &lt;td&gt;$redirectUri&lt;/td&gt;&#13;
-        &lt;td&gt;$clientId&lt;/td&gt;&#13;
-        &lt;td&gt;$form&lt;/td&gt;&#13;
-      &lt;/tr&gt;&#13;
-    #end&#13;
-  &lt;/table&gt;&#13;
-  &lt;div class="box infomessage"&gt;&#13;
-    &lt;p&gt;$services.localization.render('nextcloud.inforegistration') &lt;/p&gt;&#13;
-  &lt;/div&gt;&#13;
-#else&#13;
-  &lt;p&gt;$services.localization.render('nextcloud.noneyet')&lt;/p&gt;&#13;
-#end&#13;
-{{/html}}&#13;
-&#13;
-= $services.localization.render('nextcloud.registerinstancetitle')&#13;
-&#13;
-{{html wiki=false}}&#13;
-  &lt;form method="post" action=""&gt;&#13;
-    &lt;p&gt;&lt;label for="new_instance_url"&gt;$services.localization.render('nextcloud.url')&lt;/label&gt;&lt;/p&gt;&#13;
-    &lt;p&gt;&lt;input&#13;
-      id="new_instance_url"&#13;
-      name="new_instance_url"&#13;
-      type="text"&#13;
-      placeholder="https://nextcloud.example.org/"&#13;
-      #if("$!request.redirect_uri" != "")&#13;
-      #set($redirectURI = $urltool.toURL($request.redirect_uri))&#13;
-      #set($instanceURL = "$redirectURI.getProtocol()://$redirectURI.getHost()")&#13;
-      value="$escapetool.xml($instanceURL)"&#13;
-      #end&#13;
-    /&gt;&lt;/p&gt;&#13;
-    &lt;p&gt;&lt;label for="new_instance_redirect_url"&gt;$services.localization.render('nextcloud.redirecturl')&lt;/label&gt;&lt;/p&gt;&#13;
-    &lt;p&gt;&lt;input&#13;
-      id="new_instance_redirect_url"&#13;
-      name="new_instance_redirect_url"&#13;
-      type="text"&#13;
-      placeholder="https://nextcloud.example.org/apps/xwiki/settings/oidcRedirect"&#13;
-      value="$!escapetool.xml($request.redirect_uri)"&#13;
-    /&gt;&lt;/p&gt;&#13;
-    &lt;button&gt;$services.localization.render('nextcloud.register')&lt;/button&gt;&#13;
-  &lt;/form&gt;&#13;
-{{/html}}&#13;
-&#13;
+  <content>{{velocity}}
+#if ("$!request.delete_instance" != "")
+  #set($discard = $services.nextcloud.removeClientId($request.delete_instance))
+#end
+#set($configDoc = $xwiki.getDocument("Nextcloud.Configuration"))
+#set($objs = $configDoc.getObjects("Nextcloud.InstanceClass"))
+#if ("$!request.new_instance_uri" != "")
+  #set($clientId = "")
+  #foreach($obj in $objs)
+    #if ($obj != $NULL)
+      #set($redirectUri = $obj.get("redirectUri"))
+      #if ($redirectUri == $request.new_instance_redirect_uri)
+        #set($clientId = $obj.get("clientId"))
+      #end
+    #end
+  #end
+
+  {{html wiki=false}}
+    #if("$!clientId" == "")
+      #set($clientId = $services.nextcloud.generateClientId($request.new_instance_uri, $request.new_instance_redirect_uri))
+      #if ("$!clientId" == "")
+        &lt;div class="box errormessage"&gt;
+          &lt;p&gt; $services.localization.render('nextcloud.registrationfailed') &lt;/p&gt;
+        &lt;/div&gt;
+      #else
+        &lt;div class="box successmessage"&gt;
+          &lt;p&gt;
+            $services.localization.render('nextcloud.registrationsuccessful')
+            $services.localization.render('nextcloud.hereisclientid')
+          &lt;/p&gt;
+          &lt;p&gt;&lt;strong class="nextcloud-client-id"&gt;$escapetool.xml($clientId)&lt;/strong&gt;&lt;/p&gt;
+          &lt;p&gt;$services.localization.render('nextcloud.infocopyclose')&lt;/p&gt;
+        &lt;/div&gt;
+      #end
+    #else
+      &lt;div class="box infomessage"&gt;
+        &lt;p&gt;
+          $services.localization.render('nextcloud.alreadyregistered')
+          $services.localization.render('nextcloud.hereisclientid')
+        &lt;/p&gt;
+        &lt;p&gt;&lt;strong class="nextcloud-client-id"&gt;$escapetool.xml($clientId)&lt;/strong&gt;&lt;/p&gt;
+        &lt;p&gt;$services.localization.render('nextcloud.infocopyclose')&lt;/p&gt;
+      &lt;/div&gt;
+    #end
+  {{/html}}
+#end
+
+= $services.localization.render('nextcloud.registerinstancetitle')
+
+{{html wiki=false}}
+  #if("$!request.redirect_uri" != "" &amp;&amp; "$!request.new_instance_uri" == "")
+    &lt;div class="box infomessage"&gt;
+      &lt;p&gt;
+        &lt;strong&gt; $services.localization.render('nextcloud.inforegistering') &lt;/strong&gt;
+      &lt;/p&gt;
+      &lt;p&gt; $services.localization.render('nextcloud.inforegisteringmore') &lt;/p&gt;
+    &lt;/div&gt;
+  #end
+
+  &lt;form method="post" action=""&gt;
+    &lt;p&gt;&lt;label for="new_instance_uri"&gt;$services.localization.render('nextcloud.url')&lt;/label&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;input
+      id="new_instance_uri"
+      name="new_instance_uri"
+      type="text"
+      placeholder="https://nextcloud.example.org/"
+      value="$!escapetool.xml($request.instance_uri)"
+    /&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;label for="new_instance_redirect_uri"&gt;$services.localization.render('nextcloud.redirecturi')&lt;/label&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;input
+      id="new_instance_redirect_uri"
+      name="new_instance_redirect_uri"
+      type="text"
+      placeholder="https://nextcloud.example.org/apps/xwiki/settings/oidcRedirect"
+      value="$!escapetool.xml($request.redirect_uri)"
+    /&gt;&lt;/p&gt;
+    &lt;button class="btn btn-primary"&gt;$services.localization.render('nextcloud.register')&lt;/button&gt;
+  &lt;/form&gt;
+{{/html}}
+
+
+= $services.localization.render('nextcloud.admininstancetitle')
+
+{{html wiki=false}}
+#if ($objs.size() &gt; 0)
+  &lt;table id="nextcloudclientidtable"&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Instance&lt;/th&gt;
+      &lt;th&gt;Redirect URI&lt;/th&gt;
+      &lt;th&gt;Client ID&lt;/th&gt;
+      &lt;th&gt;Actions&lt;/th&gt;
+    &lt;/tr&gt;
+    #foreach($obj in $objs)
+      #if ($obj != $NULL)
+        #set($url = $escapetool.xml($obj.get("url")))
+        #set($redirectUri = $obj.get("redirectUri"))
+        #set($escapedClientId = $escapetool.xml($obj.get("clientId")))
+        #set($form = "&lt;form method='post' action=''&gt;&lt;button name='delete_instance' value='$escapedClientId' aria-label='delete'&gt;&lt;span class='fa fa-times-circle'&gt;&lt;/span&gt;&lt;/button&gt;&lt;/form&gt;")
+        &lt;tr&gt;
+          &lt;td&gt;$url (&lt;a href="$url/settings/admin/xwiki"&gt;$services.localization.render('nextcloud.admin') &lt;span class="icon fa fa-external-link"&gt;&lt;/span&gt;&lt;/a&gt;)&lt;/td&gt;
+          &lt;td&gt;$escapetool.xml($redirectUri)&lt;/td&gt;
+          &lt;td&gt;&lt;span class="nextcloud-client-id"&gt;$escapedClientId&lt;/span&gt;&lt;/td&gt;
+          &lt;td&gt;$form&lt;/td&gt;
+        &lt;/tr&gt;
+      #end
+    #end
+  &lt;/table&gt;
+#else
+  &lt;p&gt;$services.localization.render('nextcloud.noneyet')&lt;/p&gt;
+#end
+{{/html}}
+
 {{/velocity}}</content>
+  <object>
+    <name>Nextcloud.Admin.WebHome</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>e69e5020-9200-4679-afa9-e65adf39ed7c</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>window.addEventListener("DOMContentLoaded", function () {
+  "use strict";
+
+  for (const clientIDElement of document.getElementsByClassName("nextcloud-client-id")) {
+    const copyButton = document.createElement("button");
+    copyButton.className = "icon fa fa-clipboard";
+    copyButton.addEventListener("click", () =&gt; {
+      navigator.clipboard.writeText(clientIDElement.textContent).then(() =&gt; { new XWiki.widgets.Notification("Copied!", "done"); })
+    });
+    clientIDElement.parentNode.insertBefore(copyButton, clientIDElement.nextSibling)
+  }
+});</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
   <object>
     <name>Nextcloud.Admin.WebHome</name>
     <number>0</number>
@@ -219,6 +372,10 @@
 form p input:only-child {
   display: border-box;
   width: 100%
+}
+
+button.icon {
+  margin-left: 1ex;
 }</code>
     </property>
     <property>
