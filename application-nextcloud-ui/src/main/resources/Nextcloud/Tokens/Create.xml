@@ -46,7 +46,6 @@
       #else
         #set($clientId = $valuesForCode[0])
         #set($userReference = $valuesForCode[1])
-        #set($discard = $xwiki.getDocument("Nextcloud.Configuration").save($services.localization.render('nextcloud.removedcodemodifmsg').replace("{URL}", $request.redirect_uri)))
         #jsonResponse({
           "access_token": $services.nextcloud.createNewToken($clientId, $userReference, $request.redirect_uri),
           "token_type": "Bearer"

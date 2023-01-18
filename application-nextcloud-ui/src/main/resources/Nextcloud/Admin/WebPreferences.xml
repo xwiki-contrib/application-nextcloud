@@ -20,31 +20,31 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="Nextcloud.Configuration" locale="">
-  <web>Nextcloud</web>
-  <name>Configuration</name>
+<xwikidoc version="1.5" reference="Nextcloud.Admin.WebPreferences" locale="">
+  <web>Nextcloud.Admin</web>
+  <name>WebPreferences</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>Nextcloud.WebHome</parent>
+  <parent>Nextcloud.Admin.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title/>
+  <title>$services.localization.render('admin.preferences.title')</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content/>
   <object>
-    <name>Nextcloud.Configuration</name>
+    <name>Nextcloud.Admin.WebPreferences</name>
     <number>0</number>
-    <className>XWiki.XWikiRights</className>
-    <guid>3dbd13e1-9449-4537-baaf-1d1bd73f142a</guid>
+    <className>XWiki.XWikiGlobalRights</className>
+    <guid>dfd04d83-ffe0-4d2a-817c-d014c343c5ce</guid>
     <class>
-      <name>XWiki.XWikiRights</name>
+      <name>XWiki.XWikiGlobalRights</name>
       <customClass/>
       <customMapping/>
       <defaultViewSheet/>
@@ -115,7 +115,7 @@
       <groups>XWiki.XWikiAdminGroup</groups>
     </property>
     <property>
-      <levels>edit,delete</levels>
+      <levels>view,edit,script,delete,admin,comment</levels>
     </property>
     <property>
       <users/>

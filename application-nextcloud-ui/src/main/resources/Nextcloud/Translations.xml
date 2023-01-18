@@ -57,7 +57,6 @@ nextcloud.registerinstancetitle=Register an instance
 nextcloud.redirecturi=Redirect URI:
 nextcloud.infotokencreate=This page is used to create a token from a Nextcloud instance. Please go to the XWiki administration section of the Nextcloud instance you want to register and follow the instructions from there.
 nextcloud.gobacktonextcloud=Go back to Nextcloud
-nextcloud.removedcodemodifmsg=Removed code for {URL}
 nextcloud.registrationfailed=We failed to register the Nextcloud instance. Please report a bug to the developers of the XWiki Nextcloud application.
 nextcloud.registrationsuccessful=The Nextcloud instance has been successfully registered!
 nextcloud.hereisclientid=Here is its client ID:
@@ -67,7 +66,8 @@ nextcloud.inforegistering=You are generating a client ID for a Nextcloud instanc
 nextcloud.inforegisteringmore=If you agree, let's register it. We auto-filled the registration form below. When you are ready, click on “Register”.
 nextcloud.requestingaccessfromnextcloud=You are requesting access for a Nextcloud instance ({URL}) that is not registered on this wiki. Please ask the administrator to register it.
 nextcloud.unknownclientid=The client_id is unknown or the redirect_uri does not match
-nextcloud.userrejected=The user rejected the connection</content>
+nextcloud.userrejected=The user rejected the connection
+nextcloud.completetoken=Access will be granted by clicking on the button below.</content>
   <object>
     <name>Nextcloud.Translations</name>
     <number>0</number>

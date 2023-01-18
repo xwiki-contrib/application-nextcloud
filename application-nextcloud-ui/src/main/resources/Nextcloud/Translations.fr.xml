@@ -57,7 +57,6 @@ nextcloud.registerinstancetitle=Enregistrer une instance
 nextcloud.redirecturi=URI de redirection :
 nextcloud.infotokencreate=Cette page est utilisée pour créer un jeton depuis une instance Nextcloud. Merci de bien vouloir aller dans la section d’administration XWiki sur l’instance Nextcloud que vous souhaitez enregistrer et de suivre les instructions.
 nextcloud.gobacktonextcloud=Revenir sur Nextcloud
-nextcloud.removedcodemodifmsg=Suppression du code pour {URL}
 nextcloud.registrationfailed=Il y a eu un problème lors de l’enregistrement de cette instance Nextcloud. Merci de bien vouloir rapporter un bogue auprès de l’équipe de développement de l’application Nextcloud pour XWiki.
 nextcloud.registrationsuccessful=L’enregistrement de cette instance Nextcloud a réussi !
 nextcloud.hereisclientid=Voici son client ID :

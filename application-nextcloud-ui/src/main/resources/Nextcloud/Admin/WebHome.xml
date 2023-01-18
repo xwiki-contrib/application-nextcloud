@@ -41,7 +41,7 @@
 #if ("$!request.delete_instance" != "")
   #set($discard = $services.nextcloud.removeClientId($request.delete_instance))
 #end
-#set($configDoc = $xwiki.getDocument("Nextcloud.Configuration"))
+#set($configDoc = $xwiki.getDocument("Nextcloud.Admin.Configuration"))
 #set($objs = $configDoc.getObjects("Nextcloud.InstanceClass"))
 #if ("$!request.new_instance_uri" != "")
   #set($clientId = "")

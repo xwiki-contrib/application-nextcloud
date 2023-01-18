@@ -42,7 +42,6 @@
 #if ($isGuest)
   &lt;p&gt;$services.localization.render('nextcloud.mustbelogged')&lt;/p&gt;
 #else
-  #set($configDoc = $xwiki.getDocument("Nextcloud.Configuration"))
   #set($userDoc = $xwiki.getDocument($xcontext.getUserReference()))
 
   #set($redirectURI = $urltool.toURL($request.redirect_uri))
@@ -89,7 +88,7 @@
         &lt;/form&gt;
       &lt;/div&gt;
     #else
-      #set($token = $services.nextcloud.createNewToken($clientID, $redirectURI))
+      #set($token = $services.nextcloud.createNewToken($clientID, $xcontext.user, $redirectURI))
       #if("$!token" == "")
         &lt;div class="box"&gt;
           &lt;p&gt;

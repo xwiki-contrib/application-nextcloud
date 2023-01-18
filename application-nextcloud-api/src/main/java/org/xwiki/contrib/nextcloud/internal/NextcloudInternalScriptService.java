@@ -50,10 +50,10 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 
-import com.xpn.xwiki.api.Context;
 import com.xpn.xwiki.api.Document;
 import com.xpn.xwiki.api.Object;
 import com.xpn.xwiki.api.XWiki;
+import com.xpn.xwiki.XWikiContext;
 
 
 @Component
@@ -62,7 +62,7 @@ import com.xpn.xwiki.api.XWiki;
 public class NextcloudInternalScriptService implements ScriptService
 {
     /** Location of the configuration document. */
-    public static final String NEXTCLOUD_CONFIG_REFERENCE = "Nextcloud.Configuration";
+    public static final String NEXTCLOUD_CONFIG_REFERENCE = "Nextcloud.Admin.Configuration";
 
     /** Location of the class representing a Nextcloud Instance. */
     public static final String NEXTCLOUD_INSTANCE_CLASS = "Nextcloud.InstanceClass";
@@ -73,10 +73,7 @@ public class NextcloudInternalScriptService implements ScriptService
     private static final String PROP_CLIENT_ID = "clientId";
 
     @Inject
-    private Provider<Context> xcontextProvider;
-
-    @Inject
-    private Provider<XWiki> xwikiProvider;
+    private Provider<XWikiContext> xcontextProvider;
 
     @Inject
     private EntityReferenceSerializer<String> serialiser;
@@ -92,38 +89,42 @@ public class NextcloudInternalScriptService implements ScriptService
      * @return a new token for the given Nextcloud instance.
      * @param clientId the client ID of the Nextcloud instance
      * @param redirectUri the redirect uri of the Nextcloud instance
-     * @param userReferenceString the reference of the user for which the token is created
+     * @param user the reference of the user for which the token is created
      * @throws URISyntaxException when the given redirectUri is malformed
      * @throws XWikiException when it fails to get/set information from the wiki
      */
-    public String createNewToken(String clientId, String userReferenceString, String redirectUri)
+    public String createNewToken(String clientId, String user, String redirectUri)
         throws URISyntaxException, XWikiException
     {
-        Context xcontext = xcontextProvider.get();
-        if (XWikiRightService.isGuest(xcontext.getUserReference())) {
+        XWikiContext xcontext = xcontextProvider.get();
+        DocumentReference userDocumentReference = documentReferenceResolver.resolve(user);
+        if (XWikiRightService.isGuest(userDocumentReference)) {
             return null;
         }
 
-        XWiki wiki = xwikiProvider.get();
-        DocumentReference userDocumentReference = documentReferenceResolver.resolve(userReferenceString);
+        XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
         Document userDocument = wiki.getDocument(userDocumentReference);
         if (userDocument.isNew()) {
             return null;
         }
-        String oidcConsentRef = serialiser.serialize(OIDCConsent.REFERENCE);
-        int xobjectNumber = userDocument.createNewObject​(oidcConsentRef);
-        OIDCConsent consent = new OIDCConsent(
-            userDocument.getObject(oidcConsentRef, xobjectNumber)
-            .getXWikiObject()
-        );
-        consent.setClientID(new ClientID(clientId));
-        consent.setRedirectURI(new URI(redirectUri));
-        XWikiBearerAccessToken accessToken = XWikiBearerAccessToken.create(userReferenceString);
+
+        ClientID clientID = new ClientID(clientId);
+        URI redirectURI = new URI(redirectUri);
+
+        OIDCConsent consent = store.getConsent(clientID, redirectURI, userDocumentReference);
+
+        if (consent == null) {
+            consent = new OIDCConsent(userDocument.getDocument().newXObject(OIDCConsent.REFERENCE, xcontext));
+            consent.setClientID(clientID);
+            consent.setRedirectURI(redirectURI);
+        }
+        String consentReference = serialiser.serialize(consent.getReference());
+        XWikiBearerAccessToken accessToken = XWikiBearerAccessToken.create(consentReference);
         String random = accessToken.getRandom();
-        consent.setAccessToken(random, xcontext.getContext());
         consent.setAllowed(true);
-        store.saveConsent(consent, "Add new OIDC consent for a Nextcloud instance");
-        return consent.getReference().toString().replace("Object ", "") + "/" + random;
+        consent.setAccessToken(random, xcontext);
+        store.saveConsent(consent, "Add OIDC consent for a Nextcloud instance");
+        return consentReference.replace("Object ", "") + "/" + random;
     }
 
     /**
@@ -134,8 +135,8 @@ public class NextcloudInternalScriptService implements ScriptService
     public void removeClientId(String clientId)
         throws XWikiException
     {
-        Context xcontext = xcontextProvider.get();
-        XWiki wiki = xwikiProvider.get();
+        XWikiContext xcontext = xcontextProvider.get();
+        XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
         Document configDoc = wiki.getDocument(NEXTCLOUD_CONFIG_REFERENCE);
         for (Object obj : configDoc.getObjects(NEXTCLOUD_INSTANCE_CLASS)) {
             if (obj != null && clientId.equals((String) obj.getValue(PROP_CLIENT_ID))) {
@@ -156,7 +157,8 @@ public class NextcloudInternalScriptService implements ScriptService
     public String generateClientId(String instanceURL, String redirectUri)
         throws XWikiException
     {
-        XWiki wiki = xwikiProvider.get();
+        XWikiContext xcontext = xcontextProvider.get();
+        XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
         if (!wiki.hasAdminRights()) {
             return null;
         }
@@ -174,34 +176,6 @@ public class NextcloudInternalScriptService implements ScriptService
         return clientId;
     }
 
-    /**
-     * @return an InstanceClass XObject representing a Nextcloud instance for
-     *         the given parameters, or null if it's not found.
-     * @param clientId the client ID of the Nextcloud instance
-     * @param redirectUri the redirect uri of the Nextcloud instance
-     * @throws XWikiException when it fails to get/set information from the wiki
-     */
-    public Object getNextcloudInstanceByClientID(String clientId, String redirectUri)
-        throws XWikiException
-    {
-        if (clientId == null || redirectUri == null) {
-            return null;
-        }
-
-        XWiki wiki = xwikiProvider.get();
-        Document configDoc = wiki.getDocument(NEXTCLOUD_CONFIG_REFERENCE);
-        for (Object obj : configDoc.getObjects(NEXTCLOUD_INSTANCE_CLASS)) {
-            if (obj != null
-                && clientId.equals((String) obj.getValue(PROP_CLIENT_ID))
-                && redirectUri.equals((String) obj.getValue(PROP_REDIRECT_URI))
-            ) {
-                return obj;
-            }
-        }
-
-        return null;
-    }
-
     private Map<String, String> getCodeFromObj(Object obj) throws JsonProcessingException
     {
         String codesStr = (String) obj.getValue(PROP_CODES);
@@ -217,7 +191,7 @@ public class NextcloudInternalScriptService implements ScriptService
      * Use a grant code.
      * @param code the code to use
      * @param redirectUri the redirectUri of the Nextcloud instance
-     * @return a clientId, userReferenceString tuple, or null if the code and
+     * @return a clientId, user tuple, or null if the code and
                the redirectUri are not found or don't match
      * @throws XWikiException when it fails to get/set information from the wiki
      * @throws JsonProcessingException when it fails handle the JSON object
@@ -230,8 +204,9 @@ public class NextcloudInternalScriptService implements ScriptService
             return null;
         }
 
-        XWiki wiki = xwikiProvider.get();
-        Document configDoc = wiki.getDocument(NEXTCLOUD_CONFIG_REFERENCE);
+        XWikiContext xcontext = xcontextProvider.get();
+        XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
+        Document configDoc = wiki.getDocumentAsAuthor(NEXTCLOUD_CONFIG_REFERENCE);
         ObjectMapper objectMapper = new ObjectMapper();
         for (Object obj : configDoc.getObjects(NEXTCLOUD_INSTANCE_CLASS)) {
             if (obj == null) {
@@ -242,12 +217,12 @@ public class NextcloudInternalScriptService implements ScriptService
             if (codes.containsKey(code)
                 && redirectUri.equals((String) obj.getValue(PROP_REDIRECT_URI))
             ) {
-                String userReferenceString = codes.get(code);
+                String user = codes.get(code);
                 String clientId = (String) obj.getValue(PROP_CLIENT_ID);
                 codes.remove(code);
                 obj.set(PROP_CODES, objectMapper.writeValueAsString(codes));
-                configDoc.save("Removed a code");
-                return Arrays.asList(clientId, userReferenceString);
+                configDoc.saveAsAuthor("Removed a code");
+                return Arrays.asList(clientId, user);
             }
         }
 
@@ -263,32 +238,56 @@ public class NextcloudInternalScriptService implements ScriptService
     public boolean isClientIDRegistered(String clientId, String redirectUri)
         throws XWikiException
     {
-        return getNextcloudInstanceByClientID(clientId, redirectUri) != null;
+        if (clientId == null || redirectUri == null) {
+            return false;
+        }
+
+        XWikiContext xcontext = xcontextProvider.get();
+        XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
+        Document configDoc = wiki.getDocumentAsAuthor​(NEXTCLOUD_CONFIG_REFERENCE);
+        for (Object obj : configDoc.getObjects(NEXTCLOUD_INSTANCE_CLASS)) {
+            if (obj != null
+                && clientId.equals((String) obj.getValue(PROP_CLIENT_ID))
+                && redirectUri.equals((String) obj.getValue(PROP_REDIRECT_URI))
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
      * @return a new grant code for a Nextcloud instance
-     * @param instanceURL the URL of the Nextcloud instance
+     * @param clientId the client ID of the Nextcloud instance
      * @param redirectUri the redirectUri of the Nextcloud instance
      * @throws XWikiException when it fails to get/set information from the wiki
      * @throws JsonProcessingException when it fails handle the JSON object where the codes are stored
      */
-    public String generateGrantCode(String instanceURL, String redirectUri)
+    public String generateGrantCode(String clientId, String redirectUri)
         throws XWikiException, JsonProcessingException
     {
-        Object obj = getNextcloudInstanceByClientID(instanceURL, redirectUri);
-        if (obj != null) {
-            Context xcontext = xcontextProvider.get();
-            XWiki wiki = xwikiProvider.get();
-            byte[] n = new byte[32];
-            new SecureRandom().nextBytes(n);
-            Map<String, String> codes = getCodeFromObj(obj);
-            String code = Base64URL.encode(n).toString();
-            codes.put(code, xcontext.getUserReference().toString());
-            obj.set(PROP_CODES, new ObjectMapper().writeValueAsString(codes));
-            Document configDoc = wiki.getDocument(NEXTCLOUD_CONFIG_REFERENCE);
-            configDoc.save("Added code for instance " + instanceURL);
-            return code;
+        if (clientId == null || redirectUri == null) {
+            return "";
+        }
+
+        XWikiContext xcontext = xcontextProvider.get();
+        XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
+        Document configDoc = wiki.getDocumentAsAuthor​(NEXTCLOUD_CONFIG_REFERENCE);
+        for (Object obj : configDoc.getObjects(NEXTCLOUD_INSTANCE_CLASS)) {
+            if (obj != null
+                && clientId.equals((String) obj.getValue(PROP_CLIENT_ID))
+                && redirectUri.equals((String) obj.getValue(PROP_REDIRECT_URI))
+            ) {
+                byte[] n = new byte[32];
+                new SecureRandom().nextBytes(n);
+                Map<String, String> codes = getCodeFromObj(obj);
+                String code = Base64URL.encode(n).toString();
+                codes.put(code, xcontext.getUserReference().toString());
+                obj.set(PROP_CODES, new ObjectMapper().writeValueAsString(codes));
+                configDoc.saveAsAuthor("Added code for instance " + redirectUri);
+                return code;
+            }
         }
         return "";
     }
