@@ -17,11 +17,13 @@ can access their XWiki content from Nextcloud.
 
 ## Requirements
 
-In `xwiki.cfg`, the following setting needs to be set:
+After installing this extension, the following setting needs to be set in `xwiki.cfg`:
 
 ```
 xwiki.authentication.authclass=org.xwiki.contrib.oidc.provider.OIDCBridgeAuth
 ```
+
+After changing this value, please restart XWiki.
 
 This authentication class is provided by the
 [OpenID Connect Provider](https://extensions.xwiki.org/xwiki/bin/view/Extension/OpenID%20Connect/OpenID%20Connect%20Provider/)
