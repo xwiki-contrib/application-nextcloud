@@ -1,1 +1,1 @@
-org.xwiki.contrib.nextcloud.NextcloudScriptService
+org.xwiki.contrib.nextcloud.internal.NextcloudInternalScriptService
