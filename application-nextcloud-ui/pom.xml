@@ -35,9 +35,16 @@
       <name>Raphaël Jakse</name>
     </developer>
   </developers>
+  <scm>
+    <connection>scm:git:git://github.com/xwiki-contrib/application-nextcloud.git</connection>
+    <developerConnection>scm:git:git@github.com:xwiki-contrib/application-nextcloud.git</developerConnection>
+    <url>https://github.com/xwiki-contrib/nextcloud/tree/main</url>
+    <tag>HEAD</tag>
+  </scm>
   <properties>
     <xwiki.revapi.skip>true</xwiki.revapi.skip>
     <xwiki.extension.category>application</xwiki.extension.category>
+    <xwiki.extension.name>Nextcloud Application</xwiki.extension.name>
   </properties>
   <dependencies>
     <dependency>
