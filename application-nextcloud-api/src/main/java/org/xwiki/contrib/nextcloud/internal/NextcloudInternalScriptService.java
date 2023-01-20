@@ -42,6 +42,7 @@ import com.nimbusds.jose.util.Base64URL;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.user.api.XWikiRightService;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.oidc.provider.internal.store.OIDCStore;
 import org.xwiki.contrib.oidc.provider.internal.store.OIDCConsent;
 import org.xwiki.contrib.oidc.provider.internal.store.XWikiBearerAccessToken;
@@ -85,6 +86,10 @@ public class NextcloudInternalScriptService implements ScriptService
     @Named("currentmixed")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
+    @Inject
+    @Named("xwikicfg")
+    private ConfigurationSource wikiConfigurationSource;
+
     /**
      * @return a new token for the given Nextcloud instance.
      * @param clientId the client ID of the Nextcloud instance
@@ -103,7 +108,7 @@ public class NextcloudInternalScriptService implements ScriptService
         }
 
         XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
-        Document userDocument = wiki.getDocument(userDocumentReference);
+        Document userDocument = wiki.getDocumentAsAuthor(user);
         if (userDocument.isNew()) {
             return null;
         }
@@ -125,6 +130,20 @@ public class NextcloudInternalScriptService implements ScriptService
         consent.setAccessToken(random, xcontext);
         store.saveConsent(consent, "Add OIDC consent for a Nextcloud instance");
         return consentReference.replace("Object ", "") + "/" + random;
+    }
+
+    /**
+     * @return whether the XWiki authentication class configuration is set to the OIDC bridge.
+     */
+    public boolean isConfiguredAuthClassOIDCProvider() {
+        String authClassName = wikiConfigurationSource.getProperty("xwiki.authentication.authclass");
+        if (authClassName == null) {
+            return false;
+        }
+
+        // We expect xwiki.authentication.authclass=org.xwiki.contrib.oidc.provider.OIDCBridgeAuth
+        // but we can let people provide their own implementation without displaying warnings.
+        return authClassName.endsWith(".OIDCBridgeAuth");
     }
 
     /**

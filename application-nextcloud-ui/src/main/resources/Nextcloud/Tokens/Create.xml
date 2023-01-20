@@ -38,21 +38,32 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
   <content>{{velocity}}
+  #macro(maybeShowClassAuthWarning)
+    #if(!$isGuest &amp;&amp; !$!services.nextcloud.isConfiguredAuthClassOIDCProvider())
+
+      {{html wiki=false}}
+        #warning($escapetool.xml($services.localization.render('nextcloud.authclasswarning')))
+      {{/html}}
+
+    #end
+  #end
   #if($request.method == "POST")
     #if("$!request.code" != "" &amp;&amp; "$!request.grant_type" == "authorization_code")
       #set($valuesForCode = $services.nextcloud.useCode($request.code, $request.redirect_uri))
       #if ("$!valuesForCode" == "")
-        #jsonResponse({"error": "access_denied"})
+        #jsonResponse({"error": "access_denied $request.code | $request.grant_type | $request.redirect_uri"})
       #else
         #set($clientId = $valuesForCode[0])
-        #set($userReference = $valuesForCode[1])
+        #set($user = $valuesForCode[1])
         #jsonResponse({
-          "access_token": $services.nextcloud.createNewToken($clientId, $userReference, $request.redirect_uri),
-          "token_type": "Bearer"
+          "access_token": $services.nextcloud.createNewToken($clientId, $user, $request.redirect_uri),
+          "token_type": "Bearer",
+          "debug": "$clientId -- $user"
         })
         ## TODO: Would need id_token and expire_in to be compliant)
       #end
     #else
+      #maybeShowClassAuthWarning()
       #set($code = $services.nextcloud.generateGrantCode($request.client_id, $request.redirect_uri))
       #set($url = "${request.redirect_uri}?state=${request.state}&amp;code=${code}")
       ## The following redirect is blocked by XWiki:
@@ -66,6 +77,90 @@
     #end
   #else
     $services.localization.render('nextcloud.infotokencreate')
+    #maybeShowClassAuthWarning()
   #end
 {{/velocity}}</content>
+  <object>
+    <name>Nextcloud.Tokens.Create</name>
+    <number>0</number>
+    <className>XWiki.XWikiRights</className>
+    <guid>85b1dbf0-e4db-4d17-b898-720973bb64b3</guid>
+    <class>
+      <name>XWiki.XWikiRights</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <allow>
+        <defaultValue>1</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>allow</displayType>
+        <name>allow</name>
+        <number>4</number>
+        <prettyName>Allow/Deny</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </allow>
+      <groups>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <multiSelect>1</multiSelect>
+        <name>groups</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>Groups</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.GroupsClass</classType>
+      </groups>
+      <levels>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>1</multiSelect>
+        <name>levels</name>
+        <number>2</number>
+        <prettyName>Levels</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <size>3</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.LevelsClass</classType>
+      </levels>
+      <users>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <multiSelect>1</multiSelect>
+        <name>users</name>
+        <number>3</number>
+        <picker>1</picker>
+        <prettyName>Users</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
+      </users>
+    </class>
+    <property>
+      <allow>1</allow>
+    </property>
+    <property>
+      <groups/>
+    </property>
+    <property>
+      <levels>view</levels>
+    </property>
+    <property>
+      <users>XWiki.XWikiGuest</users>
+    </property>
+  </object>
 </xwikidoc>

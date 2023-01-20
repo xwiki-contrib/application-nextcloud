@@ -39,6 +39,7 @@
   <hidden>true</hidden>
   <content>nextcloud.welcome=Welcome to the XWiki Nextcloud integration space. This integration allows you to register Nextcloud instances to XWiki. Go to the XWiki Administration section of your Nextcloud instance and follow the instructions.
 nextcloud.mustbelogged=You must be logged in to use this page
+nextcloud.authclasswarning=It seems the XWiki configuration is not complete. The xwiki.authentication.authclass property must be set to org.xwiki.contrib.oidc.provider.OIDCBridgeAuth. Without this, the connection to XWiki from Nextcloud might fail. Note: after installing the Nextcloud Application and setting this parameter, XWiki needs to be restarted.
 nextcloud.questioninstanceaccesspermission=The Nextcloud instance at {URL} is requesting your permission to access XWiki on your behalf. Do you agree?
 nextcloud.no=No
 nextcloud.yes=Yes

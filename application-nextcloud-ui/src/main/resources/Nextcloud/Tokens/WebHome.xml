@@ -42,6 +42,9 @@
 #if ($isGuest)
   &lt;p&gt;$services.localization.render('nextcloud.mustbelogged')&lt;/p&gt;
 #else
+  #if(!$!services.nextcloud.isConfiguredAuthClassOIDCProvider())
+    #warning($escapetool.xml($services.localization.render('nextcloud.authclasswarning')))
+  #end
   #set($userDoc = $xwiki.getDocument($xcontext.getUserReference()))
 
   #set($redirectURI = $urltool.toURL($request.redirect_uri))

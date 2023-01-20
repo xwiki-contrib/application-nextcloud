@@ -38,6 +38,13 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
   <content>{{velocity}}
+#if(!$isGuest &amp;&amp; !$!services.nextcloud.isConfiguredAuthClassOIDCProvider())
+
+  {{html wiki=false}}
+    #warning($escapetool.xml($services.localization.render('nextcloud.authclasswarning')))
+  {{/html}}
+
+#end
 #if ("$!request.delete_instance" != "")
   #set($discard = $services.nextcloud.removeClientId($request.delete_instance))
 #end
