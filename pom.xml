@@ -26,7 +26,7 @@
   </parent>
   <groupId>org.xwiki.contrib.nextcloud</groupId>
   <artifactId>application-nextcloud</artifactId>
-  <version>1.2</version>
+  <version>1.3-SNAPSHOT</version>
   <name>Application Nextcloud - Parent</name>
   <packaging>pom</packaging>
   <description>Integrate Nextcloud with XWiki. Allows a Nextcloud instance to search content in XWiki as a logged in user.</description>
@@ -47,7 +47,7 @@
     <connection>scm:git:git://github.com/xwiki-contrib/application-nextcloud.git</connection>
     <developerConnection>scm:git:git@github.com:xwiki-contrib/application-nextcloud.git</developerConnection>
     <url>https://github.com/xwiki-contrib/nextcloud/tree/main</url>
-    <tag>application-nextcloud-1.2</tag>
+    <tag>HEAD</tag>
   </scm>
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
