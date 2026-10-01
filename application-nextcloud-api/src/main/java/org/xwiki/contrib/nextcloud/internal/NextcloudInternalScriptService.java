@@ -36,27 +36,32 @@ import java.util.HashMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.jose.util.Base64URL;
 
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.user.api.XWikiRightService;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
-import org.xwiki.contrib.oidc.provider.internal.store.OIDCStore;
-import org.xwiki.contrib.oidc.provider.internal.store.OIDCConsent;
-import org.xwiki.contrib.oidc.provider.internal.store.XWikiBearerAccessToken;
+import org.xwiki.contrib.oidc.OIDCConsent;
+import org.xwiki.contrib.oidc.OIDCException;
+import org.xwiki.contrib.oidc.consent.script.OIDCConsentScriptService;
+import org.xwiki.contrib.oidc.script.OIDCScriptService;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.model.reference.EntityReferenceSerializer;
 
 import com.xpn.xwiki.api.Document;
 import com.xpn.xwiki.api.Object;
 import com.xpn.xwiki.api.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import org.xwiki.security.authorization.AccessDeniedException;
+import org.xwiki.user.UserReference;
+import org.xwiki.user.UserReferenceResolver;
 
-
+/**
+ * The main (internal) script service of the nextcloud application.
+ * @version $Id$
+ */
 @Component
 @Singleton
 @Named("nextcloud")
@@ -77,10 +82,8 @@ public class NextcloudInternalScriptService implements ScriptService
     private Provider<XWikiContext> xcontextProvider;
 
     @Inject
-    private EntityReferenceSerializer<String> serialiser;
-
-    @Inject
-    private OIDCStore store;
+    @Named(OIDCScriptService.ROLEHINT + '.' + OIDCConsentScriptService.ID)
+    private ScriptService oidcConsentScriptService;
 
     @Inject
     @Named("currentmixed")
@@ -89,6 +92,11 @@ public class NextcloudInternalScriptService implements ScriptService
     @Inject
     @Named("xwikicfg")
     private ConfigurationSource wikiConfigurationSource;
+
+    @Inject
+    private UserReferenceResolver<String> userReferenceResolver;
+
+    private final SecureRandom secureRandom = new SecureRandom();
 
     /**
      * @return a new token for the given Nextcloud instance.
@@ -99,13 +107,15 @@ public class NextcloudInternalScriptService implements ScriptService
      * @throws XWikiException when it fails to get/set information from the wiki
      */
     public String createNewToken(String clientId, String user, String redirectUri)
-        throws URISyntaxException, XWikiException
+        throws URISyntaxException, XWikiException, OIDCException, AccessDeniedException
     {
-        XWikiContext xcontext = xcontextProvider.get();
         DocumentReference userDocumentReference = documentReferenceResolver.resolve(user);
         if (XWikiRightService.isGuest(userDocumentReference)) {
             return null;
         }
+
+        XWikiContext xcontext = xcontextProvider.get();
+        UserReference userReference = userReferenceResolver.resolve(user);
 
         XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
         Document userDocument = wiki.getDocumentAsAuthor(user);
@@ -113,29 +123,34 @@ public class NextcloudInternalScriptService implements ScriptService
             return null;
         }
 
-        ClientID clientID = new ClientID(clientId);
         URI redirectURI = new URI(redirectUri);
 
-        OIDCConsent consent = store.getConsent(clientID, redirectURI, userDocumentReference);
+        OIDCConsentScriptService store = (OIDCConsentScriptService) oidcConsentScriptService;
+        OIDCConsent consent = getConsent(store, clientId, redirectURI, userReference);
 
         if (consent == null) {
-            consent = new OIDCConsent(userDocument.getDocument().newXObject(OIDCConsent.REFERENCE, xcontext));
-            consent.setClientID(clientID);
-            consent.setRedirectURI(redirectURI);
+            consent = store.addConsent(userReference, clientId, null);
         }
-        String consentReference = serialiser.serialize(consent.getReference());
-        XWikiBearerAccessToken accessToken = XWikiBearerAccessToken.create(consentReference);
-        String random = accessToken.getRandom();
-        consent.setAllowed(true);
-        consent.setAccessToken(random, xcontext);
-        store.saveConsent(consent, "Add OIDC consent for a Nextcloud instance");
-        return consentReference.replace("Object ", "") + "/" + random;
+        return consent.getAccessTokenValue();
+    }
+
+    private OIDCConsent getConsent(OIDCConsentScriptService store, String clientId, URI redirectURI,
+            UserReference userReference) throws OIDCException
+    {
+        List<OIDCConsent> consents = store.getConsents(userReference);
+        for (OIDCConsent consent : consents) {
+            if (clientId.equals(consent.getClientID()) && redirectURI.equals(consent.getRedirectURI())) {
+                return consent;
+            }
+        }
+        return null;
     }
 
     /**
      * @return whether the XWiki authentication class configuration is set to the OIDC bridge.
      */
-    public boolean isConfiguredAuthClassOIDCProvider() {
+    public boolean isConfiguredAuthClassOIDCProvider()
+    {
         String authClassName = wikiConfigurationSource.getProperty("xwiki.authentication.authclass");
         if (authClassName == null) {
             return false;
@@ -158,7 +173,7 @@ public class NextcloudInternalScriptService implements ScriptService
         XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
         Document configDoc = wiki.getDocument(NEXTCLOUD_CONFIG_REFERENCE);
         for (Object obj : configDoc.getObjects(NEXTCLOUD_INSTANCE_CLASS)) {
-            if (obj != null && clientId.equals((String) obj.getValue(PROP_CLIENT_ID))) {
+            if (obj != null && clientId.equals(obj.getValue(PROP_CLIENT_ID))) {
                 String url = (String) obj.getValue(PROP_URL);
                 configDoc.removeObject(obj);
                 configDoc.save("Removed instance " + url);
@@ -183,7 +198,7 @@ public class NextcloudInternalScriptService implements ScriptService
         }
         Document configDoc = wiki.getDocument(NEXTCLOUD_CONFIG_REFERENCE);
         byte[] n = new byte[32];
-        new SecureRandom().nextBytes(n);
+        secureRandom.nextBytes(n);
         String clientId = Base64URL.encode(n).toString();
 
         int objNumber = configDoc.createNewObject(NEXTCLOUD_INSTANCE_CLASS);
@@ -199,7 +214,7 @@ public class NextcloudInternalScriptService implements ScriptService
     {
         String codesStr = (String) obj.getValue(PROP_CODES);
         return codesStr.isEmpty()
-            ? new HashMap<String, String>()
+            ? new HashMap<>()
             : new ObjectMapper().readValue(
                 codesStr,
                 new TypeReference<Map<String, String>>() { }
@@ -233,9 +248,7 @@ public class NextcloudInternalScriptService implements ScriptService
             }
 
             Map<String, String> codes = getCodeFromObj(obj);
-            if (codes.containsKey(code)
-                && redirectUri.equals((String) obj.getValue(PROP_REDIRECT_URI))
-            ) {
+            if (codes.containsKey(code) && redirectUri.equals(obj.getValue(PROP_REDIRECT_URI))) {
                 String user = codes.get(code);
                 String clientId = (String) obj.getValue(PROP_CLIENT_ID);
                 codes.remove(code);
@@ -263,11 +276,11 @@ public class NextcloudInternalScriptService implements ScriptService
 
         XWikiContext xcontext = xcontextProvider.get();
         XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
-        Document configDoc = wiki.getDocumentAsAuthor​(NEXTCLOUD_CONFIG_REFERENCE);
+        Document configDoc = wiki.getDocumentAsAuthor(NEXTCLOUD_CONFIG_REFERENCE);
         for (Object obj : configDoc.getObjects(NEXTCLOUD_INSTANCE_CLASS)) {
             if (obj != null
-                && clientId.equals((String) obj.getValue(PROP_CLIENT_ID))
-                && redirectUri.equals((String) obj.getValue(PROP_REDIRECT_URI))
+                && clientId.equals(obj.getValue(PROP_CLIENT_ID))
+                && redirectUri.equals(obj.getValue(PROP_REDIRECT_URI))
             ) {
                 return true;
             }
@@ -292,14 +305,14 @@ public class NextcloudInternalScriptService implements ScriptService
 
         XWikiContext xcontext = xcontextProvider.get();
         XWiki wiki = new XWiki(xcontext.getWiki(), xcontext);
-        Document configDoc = wiki.getDocumentAsAuthor​(NEXTCLOUD_CONFIG_REFERENCE);
+        Document configDoc = wiki.getDocumentAsAuthor(NEXTCLOUD_CONFIG_REFERENCE);
         for (Object obj : configDoc.getObjects(NEXTCLOUD_INSTANCE_CLASS)) {
             if (obj != null
-                && clientId.equals((String) obj.getValue(PROP_CLIENT_ID))
-                && redirectUri.equals((String) obj.getValue(PROP_REDIRECT_URI))
+                && clientId.equals(obj.getValue(PROP_CLIENT_ID))
+                && redirectUri.equals(obj.getValue(PROP_REDIRECT_URI))
             ) {
                 byte[] n = new byte[32];
-                new SecureRandom().nextBytes(n);
+                secureRandom.nextBytes(n);
                 Map<String, String> codes = getCodeFromObj(obj);
                 String code = Base64URL.encode(n).toString();
                 codes.put(code, xcontext.getUserReference().toString());

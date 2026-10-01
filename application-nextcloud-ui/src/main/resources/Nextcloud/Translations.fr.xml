@@ -29,14 +29,13 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Nextcloud</parent>
   <author>xwiki:XWiki.Admin</author>
-  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>nextcloud.welcome=Bienvenue dans l’espace de l’intégration Nextcloud pour XWiki. Cette intégration vous permet d’enregistrer des instances Nextcloud auprès d’XWiki. Allez dans la section XWiki de la page d’administration de votre instance Nextcloud et suivez les instructions.
 nextcloud.mustbelogged=You devez être connecté·e pour utiliser cette page.
 nextcloud.authclasswarning=Il semblerait que la configuration d’XWiki ne soit pas complète. La propriété xwiki.authentication.authclass doit valoir org.xwiki.contrib.oidc.provider.OIDCBridgeAuth, sans quoi la connexion entre Nextcloud et XWiki pourrait échouer. Remarque : après l’installlation de l’application Nextcloud et le changement de ce paramètre, XWiki doit être redémarré.
